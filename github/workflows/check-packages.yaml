@@ -1,0 +1,43 @@
+﻿name: Check Onfly Dependencies
+
+on:
+  workflow_dispatch:
+    inputs:
+      package-type:
+        description: "Select the package comparator type"
+        default: "deps"
+        type: choice
+        options:
+          - "deps"
+          - "dev-deps"
+        required: true
+  schedule:
+    - cron: "0 0 25-31 * *"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16.16.0
+          registry-url: https://npm.pkg.github.com
+
+      - name: Package comparator
+        if: contains(github.event.head_commit.message, 'check-deps') || github.event.inputs.package-type == 'deps'
+        run: |
+          npm install cli-table  --save-dev --legacy-peer-deps &&
+          node ./Scripts/App/Utils/script/checkDeps.mjs
+        working-directory: ../../
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.PACKAGE_ALL_PAT }}
+
+      - name: Package comparator
+        if: contains(github.event.head_commit.message, 'check-deps') || github.event.inputs.package-type == 'dev-deps'
+        run: |
+          npm install cli-table  --save-dev --legacy-peer-deps &&
+          node ./Scripts/App/Utils/script/checkDeps.mjs --dev
+        working-directory: ../../
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.PACKAGE_ALL_PAT }}

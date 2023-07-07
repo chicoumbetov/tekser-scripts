@@ -1,0 +1,20 @@
+﻿name: Check for unused imports
+
+on:
+  pull_request:
+    branches: ["master", "dev", "release_**", "unusedscript"]
+    paths: ["BimAndCo.Web.ManagementCloud/**"]
+
+jobs:
+  check-unused:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16.16.0
+          registry-url: https://npm.pkg.github.com
+
+      - run: npx unimported || exit 1
+        name: Check for unused imports
+        working-directory: ../../
